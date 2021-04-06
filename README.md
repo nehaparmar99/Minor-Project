@@ -1,13 +1,13 @@
 # Minor-Project
 
-Following commands should be executed before running the program:-
+Following commands should be executed before running the program:-<br/><br/>
 
-npm install ejs
-npm install express --save
-npm install peerjs
-npm install socket.io
-npm i uuid
+npm install ejs<br/>
+npm install express --save<br/>
+npm install peerjs<br/>
+npm install socket.io<br/>
+npm i uuid<br/>
 
-To run the program:-
+To run the program:-<br/>
 
-npm start
+npm start<br/>
