@@ -138,8 +138,9 @@
         });
 
         if (points) {
-          let emotion = await predictEmotion(points);
-          setText(`Detected: ${emotion}`);
+          // let emotion = await predictEmotion(points);
+          // setText(`Detected: ${emotion}`);
+          console.log(points)
         } else {
           setText("No Face");
         }
@@ -171,12 +172,13 @@
         model = await faceLandmarksDetection.load(
           faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
         );
+       
         // Load Emotion Detection
-        emotionModel = await tf.loadLayersModel("web/model/facemo.json");
+        //emotionModel = await tf.loadLayersModel("models/model.json");
 
         setText("Loaded!");
-
         trackFace();
+     
       })();
     </script>
   </body>
