@@ -26,23 +26,22 @@ let userList = "";
 
 io.on("connection", (socket) => {
   socket.on("join-room", (roomId, userId) => {
-    if(userList.length==0)
-      userList = userId;
-    else
-      userList = userList + "," + userId;
+    if (userList.length == 0) userList = userId;
+    else userList = userList + "," + userId;
     socket.join(roomId);
     socket.to(roomId).broadcast.emit("user-connected", userList);
     socket.on("message", (message) => {
       io.to(roomId).emit("createMessage", message);
     });
-    socket.to(roomId).emit("userList",userList);
+    socket.to(roomId).emit("userList", userList);
+    console.log(userList);
   });
   socket.on("news", (roomId, callback) => {
     callback({
-      status: userList
+      status: userList,
     });
   });
-  socket.on("userStreamToggle", (roomId,userId,emotion) => {
+  socket.on("userStreamToggle", (roomId, userId, emotion) => {
     socket.to(roomId).broadcast.emit("toggleTheUser", userId, emotion);
   });
 });
