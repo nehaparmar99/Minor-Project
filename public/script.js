@@ -14,7 +14,6 @@ var peer = new Peer(undefined, {
 
 let myVideoStream, userList = [], myuserId;
 
-
 var getUserMedia =
   navigator.getUserMedia ||
   navigator.webkitGetUserMedia ||
@@ -110,6 +109,8 @@ const capture = () => {
 
     //convert to desired file format
     var dataURI = canvas.toDataURL('image/jpeg'); // can also use 'image/png'
+    socket.emit("request-prediction", dataURI, ROOM_ID, myuserId);
+    console.log(dataURI);
     var imgs = document.getElementById("tmpimage");
     imgs.src = dataURI;
     imgs.style.display = "block";
@@ -196,6 +197,7 @@ const togglechatbox = () => {
 
 const leavemeeting = () => {
   console.log("Yet to be updated");
+  window.close();
 };
 
 const setUnmuteButton = () => {
@@ -208,3 +210,4 @@ const setMuteButton = () => {
   <span>Mute</span>`;
   document.getElementById("muteButton").innerHTML = html;
 };
+
