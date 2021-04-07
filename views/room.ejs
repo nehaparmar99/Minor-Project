@@ -12,10 +12,8 @@ g<!DOCTYPE html>
     <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js.map"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
     <script>
       const ROOM_ID = "<%= roomId %>";
     </script>
@@ -98,6 +96,9 @@ g<!DOCTYPE html>
       </div>
     </div>
     <script>
+      function setText(text) {
+        document.getElementById("status").innerText = text;
+      }
       function drawLine(ctx, x1, y1, x2, y2) {
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -119,21 +120,16 @@ g<!DOCTYPE html>
       let emomodel;
       async function predictEmotion(points) {
         let result = tf.tidy(() => {
-          // xs= tf.expand_dims(img,axis=0)
-          const prediction = emomodel.predict(
-            tf.reshape(points, (shape = [138, 48, 48, 1]))
-          ); // const xs = tf.stack([tf.tensor1d(points)]);
-          // return emomodel.predict(xs);
-          console.log(prediction);
-          return prediction;
+          const xs = tf.stack([tf.tensor1d(points)]);
+          return emomodel.predict(xs);
         });
         let prediction = await result.data();
         result.dispose();
         // Get the index of the maximum value
         let id = prediction.indexOf(Math.max(...prediction));
-        console.log(emotions[id]);
         return emotions[id];
       }
+
       async function trackFace() {
         const video = document.getElementById("myvid");
         const faces = await model.estimateFaces({
@@ -175,58 +171,36 @@ g<!DOCTYPE html>
           });
         });
         if (points) {
-          let result = tf.tidy(() => {
-            const xs = tf.stack([tf.tensor1d(points)]);
-            return emomodel.predict(xs);
-          });
-          let prediction = await result.data();
-          result.dispose();
-          // Get the index of the maximum value
-          let id = prediction.indexOf(Math.max(...prediction));
-          return emotions[id];
+          // console.log(points);
+          let emotion = await predictEmotion(points);
+          //setText(`Detected: ${emotion}`);
+          console.log(emotion);
+        } else {
+          console.log("No points");
+          //setText("No Face");
         }
-
-        //           if (points) {
-        //            // let emotion = await predictEmotion(points);
-        //             // setText(`Detected: ${emotion}`);
-        //              console.log(points)
-        //             //  fetch("http://127.0.0.1:5000/scale",{
-        //             //    method: "POST",
-        //             //     headers: {
-        //             //       Accept: "application/json,*/*",
-        //             //       "Content-Type": "application/json",
-        //             //     },
-        //             //     body: JSON.stringify({
-        //             //       points: points,
-        //             //     }),
-        //             //  }).then((res) => res.json())
-        //             //     .then(res => console.log(res))
-        //             //     .catch((err) => console.log(err));
-
-        // //             setInterval(function(){
-        // //               fetch("http://127.0.0.1:3030/predict", {
-        // //                 method: "POST",
-        // //                 headers: {
-        // //                   Accept: "application/json,*/*",
-        // //                   "Content-Type": "application/json",
-        // //                 },
-        // //                 body: JSON.stringify({
-        // //                   points: points,
-        // //                 }),
-        // //               })
-        // //                 .then((res) => res.json())
-        // //                 .then(res => console.log(res))
-        // //                 .catch((err) => console.log(err));
-        // //             }
-        // // ,6000
-        // //             )
-        //           } else {
-        //             setText("No Face");
-        //           }
-
         requestAnimationFrame(trackFace);
       }
-      const renderprediction = async () => {
+
+      (async () => {
+        const video = document.getElementById("myvid");
+        const modelURL = "http://127.0.0.1:5000/model";
+        // model = await blazeface.load();
+        model = await faceLandmarksDetection.load(
+          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+        );
+        if (!emomodel) emomodel = await tf.loadLayersModel(modelURL);
+        //webcam = await tf.data.webcam(document.getElementById("myvid"));
+
+        trackFace();
+        // setInterval(renderprediction, 3000);
+      })();
+    </script>
+    <script src="script.js"></script>
+  </body>
+</html>
+
+<!-- const renderprediction = async () => {
         // const img = await getWebcamImage();
         //const img = await webcam.capture();
         const video = document.getElementById("myvid");
@@ -309,23 +283,4 @@ g<!DOCTYPE html>
         const normalized = img.div(127).sub(1);
         console.log(normalized);
         return normalized;
-      }
-      (async () => {
-        const video = document.getElementById("myvid");
-        const modelURL = "http://127.0.0.1:5000/model";
-        model = await blazeface.load();
-        if (!emomodel) emomodel = await tf.loadLayersModel(modelURL);
-        webcam = await tf.data.webcam(document.getElementById("myvid"));
-        // console.log(webcam);
-        // renderprediction();
-        // Load Face Landmarks Detection
-        // model = await faceLandmarksDetection.load(
-        //   faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
-        // );
-        // trackFace();
-        setInterval(renderprediction, 3000);
-      })();
-    </script>
-    <script src="script.js"></script>
-  </body>
-</html>
+      } -->

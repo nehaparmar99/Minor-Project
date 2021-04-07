@@ -6,6 +6,8 @@ const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.classList.add("mystyle");
 myVideo.setAttribute("id", "myvid");
+const text = document.createElement("h1");
+text.setAttribute("id", "status");
 myVideo.muted = true;
 
 var peer = new Peer(undefined, {
