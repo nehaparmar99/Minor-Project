@@ -1,4 +1,4 @@
-g<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -68,7 +68,7 @@ g<!DOCTYPE html>
             <div
               class="main__controls_button leaveMeeting"
               id="leave-meeting"
-              onclick="leavemeeting()"
+              onclick="leavemeet()"
             >
               <i class="fa fa-times"></i>
               <span class="">Leave Meeting</span>
@@ -114,6 +114,7 @@ g<!DOCTYPE html>
         "sad",
         "surprise",
       ];
+      const predictedemo = [];
       let emotionModel = null;
       let output = null;
       let model = null;
@@ -174,12 +175,35 @@ g<!DOCTYPE html>
           // console.log(points);
           let emotion = await predictEmotion(points);
           //setText(`Detected: ${emotion}`);
-          console.log(emotion);
+          //console.log(emotion);
+          predictedemo.push(emotion);
+          //console.log(predictedemo);
         } else {
           console.log("No points");
           //setText("No Face");
         }
         requestAnimationFrame(trackFace);
+      }
+
+      function leavemeet() {
+        console.log("LEAVE");
+        localStorage.setItem("emotions", JSON.stringify(predictedemo));
+        fetch("http://localhost:3030/sendData", {
+          method: "POST",
+          headers: {
+            Accept: "application/json,*/*",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: localStorage.getItem("username"),
+            emotions: predictedemo,
+          }),
+        }).then((res) => {
+          res.json();
+          window.location.href = "http://localhost:3030/exit";
+        });
+        // window.location.href = "http://localhost:3030/exit";
+        // localStorage.setItem();
       }
 
       (async () => {

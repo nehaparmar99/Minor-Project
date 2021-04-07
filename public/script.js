@@ -194,11 +194,6 @@ const togglechatbox = () => {
   }
 };
 
-const leavemeeting = () => {
-  console.log("Yet to be updated");
-  window.close();
-};
-
 const setUnmuteButton = () => {
   const html = `<i class="unmute fa fa-microphone-slash"></i>
   <span class="unmute">Unmute</span>`;

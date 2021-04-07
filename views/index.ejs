@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html id="home" lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+	  <!-- <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> -->
+     <!-- <script src="static/jquery.slim.min.js"></script>
+    <script src="static/bootstrap.min.js"></script>
+    <script src="static/popper.min.js"></script> -->
+
+	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- <script>
+        if (!location.hash.replace('#', '').length) {
+            location.href = location.href.split('#')[0] + '#' + (18 * 100).toString().replace('.', '');
+            location.reload();
+        }
+    </script> -->
+<link rel="stylesheet" type="text/css" href="../public/index.css"></link>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<style>
+     body {
+            background-color: skyblue;
+            text-decoration-color: white;
+            font-size:7em; 
+        }
+</style>
+
+</head>
+
+<body>
+    <!-- <article> -->
+        <div class="visible">
+        <div class="container visible">
+            <div class="row">
+              <div class="col-lg-6 col-sm-4">
+                <div class="card" style="border-color:green; background-color: lavender;">
+                  <div class="card-body text-center">
+                      <h1  style="text-align:center; color: green;"><b>Broadcast Name</b><h1>  <br>
+                    <input type="text" class="form-control" id="conference-name" placeholder="Enter Your Broadcast Name"><br>
+                    <button id="start-conferencing" class="btn btn-success">New Broadcast</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 col-sm-4">
+                <div class="card" style="border-color:green; background-color: lavender;">
+                    <div class="card-body text-center">
+                        <h1  style="text-align:center; color: green;"><b>Join Room</b><h1>  <br>
+               <br>
+                <table id="rooms-list" class="visible"  style="text-align:center; color: green;"></table>
+                </div></div>
+
+              </div>
+            </div>
+
+            </div>
+            </div>
+            </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+        
+        <div style="background-color: honeydew;">
+
+        <div id="participants"></div>
+        
+        <div id="students" style="color: black;">
+            <div></div>
+        </div>
+        <canvas id="myChart" style="margin-left: 12px;"></canvas>
+        <div id="livestatus" style="background-color: honeydew;">
+        </div>
+        <button id="close">Close</button>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+        <script src="https://cdn.jsdelivr.net/npm/promise-polyfill"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.all.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.min.js"></script>
+        <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.min.css">
+
+<script>
+  let newb=document.getElementById("start-conferencing")  
+  newb.addEventListener("click",createb);
+  let username=document.getElementById("conference-name");
+  function createb(){
+      console.log("clicked")
+      let name=username.value;
+      console.log(name);
+      localStorage.setItem("username",name);
+
+      fetch("http://localhost:3030/main",{
+          method:"POST",
+          headers:{
+               Accept: "application/json,*/*",
+    "Content-Type": "application/json",
+          },
+           body: JSON.stringify({
+    name: name,
+  }),
+      })  .then((res) => res.json())
+      .then(res=>{
+         const url="http://localhost:3030/"+`${res.code}`
+         console.log(url)
+       window.location.href = url;
+    });
+  }
+</script>
+    <!-- </article> -->
+
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home Page</title>
+
+    <style type="text/css" media="screen">
+      body {
+        background-color: skyblue;
+        text-decoration-color: white;
+      }
+      button {
+        width: 20%;
+        height: 40px;
+        border-radius: 5px;
+        align-items: center;
+        text-align: center;
+        left: 50%;
+      }
+      .result {
+        font-size: 2em;
+        margin-left: 20px;
+      }
+      #overall {
+        margin-left: 5px;
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>The following data has been sent to the instructor:</h1>
+    <div class="result">
+      <p id="1">😡</p>
+      <p id="2">🥴</p>
+      <p id="3">😥</p>
+      <p id="4">😄</p>
+      <p id="5">🙄</p>
+      <p id="6">🤔</p>
+      <p id="7">😟</p>
+      <p>Overall understanding of the lesson: <span id="overall"></span></p>
+    </div>
+    <script>
+      function getdata() {
+        let emotions = localStorage.getItem("emotions");
+        emotions = JSON.parse(emotions);
+        var count = [0, 0, 0, 0, 0, 0, 0];
+        //   const emotions = [
+        //   "angry",
+        //   "disgust",
+        //   "fear",
+        //   "happy",
+        //   "neutral",
+        //   "sad",
+        //   "surprise",
+        // ];
+        var arrayLength = emotions.length;
+        for (var i = 0; i < arrayLength; i++) {
+          if (emotions[i] == "angry") count[0]++;
+          if (emotions[i] == "disgust") count[1]++;
+          if (emotions[i] == "fear") count[2]++;
+          if (emotions[i] == "happy") count[3]++;
+          if (emotions[i] == "neutral") count[4]++;
+          if (emotions[i] == "sad") count[5]++;
+          if (emotions[i] == "surprise") count[6]++;
+          //Do something
+        }
+        var maxx = 0;
+        for (var i = 0; i < 7; i++) {
+          console.log(count[i]);
+          const text = document.getElementById(`${i + 1}`).innerHTML;
+          let num = (count[i] / arrayLength) * 100;
+          num = Math.round((num + Number.EPSILON) * 100) / 100;
+          document.getElementById(`${i + 1}`).innerHTML =
+            text + "&nbsp" + "&nbsp" + "&nbsp" + "&nbsp" + num + "%";
+          if (i == 0 || i == 1 || i == 2 || i == 5) maxx -= num;
+          else maxx += num;
+        }
+        document.getElementById("overall").innerHTML =
+          Math.round((maxx + Number.EPSILON) * 100) / 100 + "%";
+        // emotions.forEach((emotion) => {
+        //   if(emotion=="happy")
+        // });
+      }
+      getdata();
+    </script>
+  </body>
+</html>
