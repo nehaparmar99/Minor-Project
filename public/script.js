@@ -4,6 +4,8 @@ const all_messages = document.getElementById("all_messages");
 const main__chat__window = document.getElementById("main__chat__window");
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
+myVideo.classList.add("mystyle");
+myVideo.setAttribute("id", "myvid");
 myVideo.muted = true;
 
 var peer = new Peer(undefined, {
@@ -12,7 +14,9 @@ var peer = new Peer(undefined, {
   port: "3030",
 });
 
-let myVideoStream, userList = [], myuserId;
+let myVideoStream,
+  userList = [],
+  myuserId;
 
 var getUserMedia =
   navigator.getUserMedia ||
@@ -38,7 +42,7 @@ navigator.mediaDevices
 
     socket.on("user-connected", (inuserList) => {
       var myuserlist = inuserList.split(",");
-      connectToNewUser(myuserlist[myuserlist.length-1], stream);
+      connectToNewUser(myuserlist[myuserlist.length - 1], stream);
       userList = myuserlist;
     });
 
@@ -82,8 +86,7 @@ socket.on("userList", (data) => {
 });
 
 socket.on("toggleTheUser", (data, emotion) => {
-  if(data!=myuserId)
-    toggleTheUser(data, emotion);
+  if (data != myuserId) toggleTheUser(data, emotion);
 });
 
 peer.on("open", (id) => {
@@ -104,16 +107,16 @@ const connectToNewUser = (userId, streams) => {
 
 const capture = () => {
   var canvas = document.getElementById("tmpcanvas");
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(myVideo, 0, 0, canvas.width, canvas.height);
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(myVideo, 0, 0, canvas.width, canvas.height);
 
-    //convert to desired file format
-    var dataURI = canvas.toDataURL('image/jpeg'); // can also use 'image/png'
-    socket.emit("request-prediction", dataURI, ROOM_ID, myuserId);
-    console.log(dataURI);
-    var imgs = document.getElementById("tmpimage");
-    imgs.src = dataURI;
-    imgs.style.display = "block";
+  //convert to desired file format
+  var dataURI = canvas.toDataURL("image/jpeg"); // can also use 'image/png'
+  socket.emit("request-prediction", dataURI, ROOM_ID, myuserId);
+  console.log(dataURI);
+  var imgs = document.getElementById("tmpimage");
+  imgs.src = dataURI;
+  imgs.style.display = "block";
 };
 
 const addVideoStream = (videoEl, stream) => {
@@ -124,17 +127,14 @@ const addVideoStream = (videoEl, stream) => {
 
   videoGrid.append(videoEl);
   let totalUsers = document.getElementsByTagName("video").length;
-  if (totalUsers > 1&&totalUsers<=3) {
+  if (totalUsers > 1 && totalUsers <= 3) {
     for (let index = 0; index < totalUsers; index++) {
       document.getElementsByTagName("video")[index].style.width =
         100 / totalUsers + "%";
     }
-  }
-  else if(totalUsers>3)
-  {
+  } else if (totalUsers > 3) {
     for (let index = 0; index < totalUsers; index++) {
-      document.getElementsByTagName("video")[index].style.width =
-        100/2 + "%";
+      document.getElementsByTagName("video")[index].style.width = 100 / 2 + "%";
     }
   }
 };
@@ -179,17 +179,14 @@ const toggleTheUser = (data, emotion) => {
 };
 
 const myconsole = () => {
-  console.log(userList,myuserId);
+  console.log(userList, myuserId);
 };
 
 const togglechatbox = () => {
-  if(document.getElementById("chatroom").style.display === "none")
-  {
+  if (document.getElementById("chatroom").style.display === "none") {
     document.getElementById("chatroom").style.display = "flex";
     document.getElementById("videoroom").style.flex = 0.8;
-  }
-  else
-  {
+  } else {
     document.getElementById("chatroom").style.display = "none";
     document.getElementById("videoroom").style.flex = 1;
   }
@@ -210,4 +207,3 @@ const setMuteButton = () => {
   <span>Mute</span>`;
   document.getElementById("muteButton").innerHTML = html;
 };
-

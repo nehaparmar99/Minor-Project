@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+g<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,8 +12,10 @@
     <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js.map"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
     <script>
       const ROOM_ID = "<%= roomId %>";
     </script>
@@ -133,9 +135,7 @@
         return emotions[id];
       }
       async function trackFace() {
-        const video = document.querySelector("video");
-        // CAPTURE FACE EVERY 5 min(Might use setInterval) and send the image to /preprocess for points
-
+        const video = document.getElementById("myvid");
         const faces = await model.estimateFaces({
           input: video,
           returnTensors: false,
@@ -174,7 +174,17 @@
             });
           });
         });
-        if (points) console.log(points);
+        if (points) {
+          let result = tf.tidy(() => {
+            const xs = tf.stack([tf.tensor1d(points)]);
+            return emomodel.predict(xs);
+          });
+          let prediction = await result.data();
+          result.dispose();
+          // Get the index of the maximum value
+          let id = prediction.indexOf(Math.max(...prediction));
+          return emotions[id];
+        }
 
         //           if (points) {
         //            // let emotion = await predictEmotion(points);
@@ -216,17 +226,104 @@
 
         requestAnimationFrame(trackFace);
       }
+      const renderprediction = async () => {
+        // const img = await getWebcamImage();
+        //const img = await webcam.capture();
+        const video = document.getElementById("myvid");
+        // let img = tf.browser.fromPixels(video);
+        // tf.image.rgb_to_grayscale(img);
+        // console.log("in predict", img);
+        tf.browser
+          .fromPixels(video)
+          .mean(2)
+          .toFloat()
+          .expandDims(0)
+          .expandDims(-1);
+        // let result = tf.tidy(() => {
+        //   const input = img.reshape([1, 48, 48, 3]);
+        //   return emomodel.predict(input);
+        // });
+        // console.log(result);
+        // img.dispose();
+        // let prediction = await result.data();
+        // result.dispose();
+        // console.log(prediction);
 
+        // tf.engine().startScope();
+        const predictions = await model.estimateFaces(img, true);
+        // // const offset = tf.scalar(127.5);
+        console.log(predictions);
+        // // // return predictions;
+        if (predictions.length > 0) {
+          for (let i = 0; i < predictions.length; i++) {
+            var start = predictions[i].topLeft.arraySync();
+            var end = predictions[i].bottomRight.arraySync();
+            var size = [end[0] - start[0], end[1] - start[1]]; //(w,h)
+            console.log("start", start);
+            console.log("end", end);
+            console.log("size", size);
+            boxes = tf.concat([start, end]).reshape([-1, 4]);
+            img.expandDims(0).reshape([1, 48, 48, 3]);
+            crop = tf.image.cropAndResize(
+              img.expandDims(0),
+              boxes,
+              [0],
+              [end[1] - start[1], end[0] - start[0]]
+            );
+            // // inputImage = img.slice(
+            //   [parseInt(start[1]), parseInt(start[0]), 0],
+            //   [parseInt(size[1]), parseInt(size[0]), 3]
+            // );
+            img = img.resizeBilinear([48, 48]).reshape([null, 48, 48, 1]);
+          }
+        }
+        // var inputImage = tf.browser.fromPixels(video);
+        // tf.browser.toPixels(inputImage);
+        // var inputImage = tf.browser.fromPixels(video).toFloat();
+        // inputImage = inputImage.sub(offset).div(offset);
+        // inputImage = inputImage.slice(
+        //   [parseInt(start[1]), parseInt(start[0]), 0],
+        //   [parseInt(size[1]), parseInt(size[0]), 3]
+        // );
+        // console.log("image", inputImage);
+        // inputImage = inputImage
+        //   .resizeBilinear([48, 48])
+        //   .reshape([null, 48, 48, 3]);
+        // result = emomodel.predict(inputImage).dataSync();
+        //  }
+        //   }
+        //   // inputImage = inputImage.slice(
+        //   //   [parseInt(start[1]), parseInt(start[0]), 0],
+        //   //   [parseInt(size[1]), parseInt(size[0]), 3]
+        //   // );
+        //   // console.log(inputImage);
+        //   inputImage = inputImage
+        //     .resizeBilinear([48, 48])
+        //     .reshape([null, 48, 48, 3]);
+        //   result = emomodel.predict(inputImage).dataSync();
+        //   // console.log(result);
+      };
+      let webcam;
+      async function getWebcamImage() {
+        const img = (await webcam.capture()).toFloat();
+        const normalized = img.div(127).sub(1);
+        console.log(normalized);
+        return normalized;
+      }
       (async () => {
-        const video = document.querySelector("video");
+        const video = document.getElementById("myvid");
         const modelURL = "http://127.0.0.1:5000/model";
-
-        // Load Face Landmarks Detection
-        model = await faceLandmarksDetection.load(
-          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
-        );
+        model = await blazeface.load();
         if (!emomodel) emomodel = await tf.loadLayersModel(modelURL);
-        trackFace();
+        webcam = await tf.data.webcam(document.getElementById("myvid"));
+        // console.log(webcam);
+        // renderprediction();
+        // Load Face Landmarks Detection
+        // model = await faceLandmarksDetection.load(
+        //   faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+        // );
+        // trackFace();
+        setInterval(renderprediction, 3000);
       })();
     </script>
     <script src="script.js"></script>

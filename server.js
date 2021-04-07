@@ -10,7 +10,7 @@ const peerServer = ExpressPeerServer(server, {
   debug: true,
 });
 
-app.set("view engine", "pug");
+app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use("/peerjs", peerServer);
 
@@ -19,7 +19,7 @@ app.get("/", (req, rsp) => {
 });
 
 app.get("/:room", (req, res) => {
-  res.render("room");
+  res.render("room", { roomId: req.params.room });
 });
 
 let userList = "";
@@ -42,9 +42,6 @@ io.on("connection", (socket) => {
   });
   socket.on("userStreamToggle", (roomId, userId, emotion) => {
     socket.to(roomId).broadcast.emit("toggleTheUser", userId, emotion);
-  });
-  socket.on("request-prediction", (data, roomId, userId) => {
-    socket.to(roomId).emit("predictionList", "predictionList");
   });
 });
 
