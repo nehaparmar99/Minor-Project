@@ -3,20 +3,21 @@
     <title>Real-Time Facial Emotion Detection</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="video-call-div">
       <video
         id="webcam"
         playsinline
-        style="visibility: hidden; width: auto; height: auto"
       ></video>
     </div>
     <canvas id="output" class="local-video"></canvas>
     <div class="action_div">
       <button>Mute Video</button>
       <button>Mute Audio</button>
+      <canvas width = "600px" height = "400px" id = "tmpcanvas"></canvas>
+      <button id = "captureButton" onclick = "capture()">Capture</button>
     </div>
     <h1 id="status">Loading...</h1>
     <script>
@@ -31,9 +32,14 @@
         ctx.stroke();
       }
 
+      var myVideoStream;
+      const myVideo = document.getElementById("webcam");
+      const canvas = document.getElementById("output");
+      const showcanva = document.getElementById("tmpcanvas");
+
       async function setupWebcam() {
         return new Promise((resolve, reject) => {
-          const webcamElement = document.getElementById("webcam");
+          //const webcamElement = document.getElementById("webcam");
           const navigatorAny = navigator;
           navigator.getUserMedia =
             navigator.getUserMedia ||
@@ -44,8 +50,8 @@
             navigator.getUserMedia(
               { video: true },
               (stream) => {
-                webcamElement.srcObject = stream;
-                webcamElement.addEventListener("loadeddata", resolve, false);
+                myVideo.srcObject = stream;
+                myVideo.addEventListener("loadeddata", resolve, false);
               },
               (error) => reject()
             );
@@ -69,6 +75,12 @@
       let output = null;
       let model = null;
 
+      const capture = () => {
+        var ctx = canvas.getContext('2d');
+        output.drawImage(myVideo, 0, 0, canvas.width, canvas.height);
+        trackFace(canvas,ctx);
+      };
+
       async function predictEmotion(points) {
         let result = tf.tidy(() => {
           const xs = tf.stack([tf.tensor1d(points)]);
@@ -81,28 +93,29 @@
         return emotions[id];
       }
 
-      async function trackFace() {
-        const video = document.querySelector("video");
+      async function trackFace(canva, context) {
+        //const video = document.querySelector("video");
+        console.log(canva);
         const faces = await model.estimateFaces({
-          input: video,
+          input: canva,
           returnTensors: false,
           flipHorizontal: false,
         });
+        console.log(faces);
         output.drawImage(
-          video,
+          canva,
           0,
           0,
-          video.width,
-          video.height,
+          canva.width,
+          canva.height,
           0,
           0,
-          video.width,
-          video.height
+          canva.width,
+          canva.height
         );
 
         let points = null;
         faces.forEach((face) => {
-          // Draw the bounding box
           const x1 = face.boundingBox.topLeft[0];
           const y1 = face.boundingBox.topLeft[1];
           const x2 = face.boundingBox.bottomRight[0];
@@ -147,18 +160,17 @@
         requestAnimationFrame(trackFace);
       }
 
+
       (async () => {
         await setupWebcam();
-        const video = document.getElementById("webcam");
-        video.play();
-        let videoWidth = video.videoWidth;
-        let videoHeight = video.videoHeight;
-        video.width = videoWidth;
-        video.height = videoHeight;
+        myVideo.play();
+        let videoWidth = myVideo.videoWidth;
+        let videoHeight = myVideo.videoHeight;
+        myVideo.width = videoWidth;
+        myVideo.height = videoHeight;
 
-        let canvas = document.getElementById("output");
-        canvas.width = video.width;
-        canvas.height = video.height;
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
 
         output = canvas.getContext("2d");
         output.translate(canvas.width, 0);
@@ -172,11 +184,13 @@
           faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
         );
         // Load Emotion Detection
-        emotionModel = await tf.loadLayersModel("web/model/facemo.json");
+        emotionModel = await tf.loadLayersModel("model/facemo.json");
+
+        console.log("Model setted up!!!");
 
         setText("Loaded!");
 
-        trackFace();
+        //trackFace();
       })();
     </script>
   </body>

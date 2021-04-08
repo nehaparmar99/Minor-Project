@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HOME</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js.map"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+      const ROOM_ID = "<%= roomId %>";
+    </script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main__left" id="videoroom">
+        <div class="main__videos">
+          <div id="video-grid"></div>
+        </div>
+        <canvas id="output" class="local-video" style = "display: none;"></canvas>
+        <div class="main__controls">
+          <div class="main__controls_block">
+            <div
+              class="main__controls_button"
+              id="muteButton"
+              onclick="muteUnmute()"
+            >
+              <i class="fa fa-microphone"></i>
+              <span>Mute</span>
+            </div>
+            <div
+              class="main__controls_button"
+              id="playPauseVideo"
+              onclick="playStop()"
+            >
+              <i class="fa fa-video-camera"></i>
+              <span>Pause Video</span>
+            </div>
+          </div>
+
+          <div class="main__controls_block">
+            <div
+              class="main__controls_button"
+              id="securitybutton"
+              onclick="myconsole()"
+            >
+              <i class="fa fa-shield"></i>
+              <span>Security</span>
+            </div>
+            <div class="main__controls_button">
+              <i class="fa fa-users"></i>
+              <span>Participants</span>
+            </div>
+            <div class="main__controls_button" onclick="togglechatbox()">
+              <i class="fa fa-comment"></i>
+              <span>Chat</span>
+            </div>
+          </div>
+
+          <div class="main__controls_block">
+            <div
+              class="main__controls_button leaveMeeting"
+              id="leave-meeting"
+              onclick="leavemeeting()"
+            >
+              <i class="fa fa-times"></i>
+              <span class="">Leave Meeting</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="main__right" id="chatroom">
+        <div id = "myroom"></div>
+        <div id = "pallete" style = "margin: auto; padding-top: 2em;">
+          <img id = "showEmoji" class = "fushh">
+        </div>
+        <canvas width="600px" height="400px" id="tmpcanvas"></canvas>
+        <h1 id = "emotionstatus">Loading...</h1>
+        <img alt="Italian Trulli" id="tmpimage" />
+        <button id="capturebutton" onclick="capture()">Capture</button>
+        <div class="main__header">
+          <h6>Chat</h6>
+        </div>
+        <div class="main__chat__window" id="main__chat__window">
+          <ul class="messages" id="all_messages"></ul>
+        </div>
+        <div class="main__message_container">
+          <input
+            type="text"
+            id="chat_message"
+            placeholder="Type message here.."
+          />
+        </div>
+      </div>
+    </div>
+    <script>
+      function setText(text) {
+        document.getElementById("status").innerText = text;
+      }
+      function drawLine(ctx, x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      const emotions = [
+        "angry",
+        "disgust",
+        "fear",
+        "happy",
+        "neutral",
+        "sad",
+        "surprise",
+      ];
+      let emotionModel = null;
+      let output = null;
+      let model = null;
+      let emomodel;
+      async function predictEmotion(points) {
+        let result = tf.tidy(() => {
+          const xs = tf.stack([tf.tensor1d(points)]);
+          return emomodel.predict(xs);
+        });
+        let prediction = await result.data();
+        result.dispose();
+        // Get the index of the maximum value
+        let id = prediction.indexOf(Math.max(...prediction));
+        return emotions[id];
+      }
+
+      async function trackFace() {
+        const video = document.getElementById("myvid");
+        const faces = await model.estimateFaces({
+          input: video,
+          returnTensors: false,
+          flipHorizontal: false,
+        });
+        //console.log(faces);
+        let points = null;
+        faces.forEach((face) => {
+          // Draw the bounding box
+          const x1 = face.boundingBox.topLeft[0];
+          const y1 = face.boundingBox.topLeft[1];
+          const x2 = face.boundingBox.bottomRight[0];
+          const y2 = face.boundingBox.bottomRight[1];
+          const bWidth = x2 - x1;
+          const bHeight = y2 - y1;
+          //console.log("in track");
+          // Add just the nose, cheeks, eyes, eyebrows & mouth
+          const features = [
+            "noseTip",
+            "leftCheek",
+            "rightCheek",
+            "leftEyeLower1",
+            "leftEyeUpper1",
+            "rightEyeLower1",
+            "rightEyeUpper1",
+            "leftEyebrowLower", //"leftEyebrowUpper",
+            "rightEyebrowLower", //"rightEyebrowUpper",
+            "lipsLowerInner", //"lipsLowerOuter",
+            "lipsUpperInner", //"lipsUpperOuter",
+          ];
+          points = [];
+          features.forEach((feature) => {
+            face.annotations[feature].forEach((x) => {
+              points.push((x[0] - x1) / bWidth);
+              points.push((x[1] - y1) / bHeight);
+            });
+          });
+        });
+        if (points) {
+          // console.log(points);
+          let emotion = await predictEmotion(points);
+          //setText(`Detected: ${emotion}`);
+          //console.log(emotion);
+          document.getElementById("emotionstatus").innerText = emotion;
+        } else {
+          console.log("No points");
+          //setText("No Face");
+          document.getElementById("emotionstatus").innerText = "noface";
+        }
+        setTimeout(trackFace, 3000);
+      }
+
+      async function emotionalDrama(){
+        const video = document.getElementById("myvid");
+        const modelURL = "http://127.0.0.1:5000/model";
+        // model = await blazeface.load();
+        model = await faceLandmarksDetection.load(
+          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+        );
+        if (!emomodel) emomodel = await tf.loadLayersModel(modelURL);
+        //webcam = await tf.data.webcam(document.getElementById("myvid"));
+        console.log("time for fun!!!");
+        trackFace();
+        // setInterval(renderprediction, 3000);
+      }
+    </script>
+    <script src="script.js"></script>
+  </body>
+</html>
+
+<!-- const renderprediction = async () => {
+        // const img = await getWebcamImage();
+        //const img = await webcam.capture();
+        const video = document.getElementById("myvid");
+        // let img = tf.browser.fromPixels(video);
+        // tf.image.rgb_to_grayscale(img);
+        // console.log("in predict", img);
+        tf.browser
+          .fromPixels(video)
+          .mean(2)
+          .toFloat()
+          .expandDims(0)
+          .expandDims(-1);
+        // let result = tf.tidy(() => {
+        //   const input = img.reshape([1, 48, 48, 3]);
+        //   return emomodel.predict(input);
+        // });
+        // console.log(result);
+        // img.dispose();
+        // let prediction = await result.data();
+        // result.dispose();
+        // console.log(prediction);
+
+        // tf.engine().startScope();
+        const predictions = await model.estimateFaces(img, true);
+        // // const offset = tf.scalar(127.5);
+        console.log(predictions);
+        // // // return predictions;
+        if (predictions.length > 0) {
+          for (let i = 0; i < predictions.length; i++) {
+            var start = predictions[i].topLeft.arraySync();
+            var end = predictions[i].bottomRight.arraySync();
+            var size = [end[0] - start[0], end[1] - start[1]]; //(w,h)
+            console.log("start", start);
+            console.log("end", end);
+            console.log("size", size);
+            boxes = tf.concat([start, end]).reshape([-1, 4]);
+            img.expandDims(0).reshape([1, 48, 48, 3]);
+            crop = tf.image.cropAndResize(
+              img.expandDims(0),
+              boxes,
+              [0],
+              [end[1] - start[1], end[0] - start[0]]
+            );
+            // // inputImage = img.slice(
+            //   [parseInt(start[1]), parseInt(start[0]), 0],
+            //   [parseInt(size[1]), parseInt(size[0]), 3]
+            // );
+            img = img.resizeBilinear([48, 48]).reshape([null, 48, 48, 1]);
+          }
+        }
+        // var inputImage = tf.browser.fromPixels(video);
+        // tf.browser.toPixels(inputImage);
+        // var inputImage = tf.browser.fromPixels(video).toFloat();
+        // inputImage = inputImage.sub(offset).div(offset);
+        // inputImage = inputImage.slice(
+        //   [parseInt(start[1]), parseInt(start[0]), 0],
+        //   [parseInt(size[1]), parseInt(size[0]), 3]
+        // );
+        // console.log("image", inputImage);
+        // inputImage = inputImage
+        //   .resizeBilinear([48, 48])
+        //   .reshape([null, 48, 48, 3]);
+        // result = emomodel.predict(inputImage).dataSync();
+        //  }
+        //   }
+        //   // inputImage = inputImage.slice(
+        //   //   [parseInt(start[1]), parseInt(start[0]), 0],
+        //   //   [parseInt(size[1]), parseInt(size[0]), 3]
+        //   // );
+        //   // console.log(inputImage);
+        //   inputImage = inputImage
+        //     .resizeBilinear([48, 48])
+        //     .reshape([null, 48, 48, 3]);
+        //   result = emomodel.predict(inputImage).dataSync();
+        //   // console.log(result);
+      };
+      let webcam;
+      async function getWebcamImage() {
+        const img = (await webcam.capture()).toFloat();
+        const normalized = img.div(127).sub(1);
+        console.log(normalized);
+        return normalized;
+      } -->

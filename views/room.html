@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HOME</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.1/peerjs.min.js.map"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Require the peer dependencies of face-landmarks-detection. -->
+<script src="https://unpkg.com/@tensorflow/tfjs-core@2.4.0/dist/tf-core.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-converter@2.4.0/dist/tf-converter.js"></script>
+
+<!-- You must explicitly require a TF.js backend if you're not using the tfjs union bundle. -->
+<script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.4.0/dist/tf-backend-webgl.js"></script>
+<!-- Alternatively you can use the WASM backend: <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.4.0/dist/tf-backend-wasm.js"></script> -->
+
+<!-- Require face-landmarks-detection itself. -->
+<script src="https://unpkg.com/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
+    <script>
+      const ROOM_ID = "room";
+    </script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main__left" id = "videoroom">
+        <div class="main__videos">
+          <div id="video-grid"></div>
+        </div>
+        <div class="main__controls">
+          <div class="main__controls_block">
+            <div
+              class="main__controls_button"
+              id="muteButton"
+              onclick="muteUnmute()"
+            >
+              <i class="fa fa-microphone"></i>
+              <span>Mute</span>
+            </div>
+            <div
+              class="main__controls_button"
+              id="playPauseVideo"
+              onclick="playStop()"
+            >
+              <i class="fa fa-video-camera"></i>
+              <span>Pause Video</span>
+            </div>
+          </div>
+
+          <div class="main__controls_block">
+            <div class="main__controls_button" id = "securitybutton" onclick = "myconsole()">
+              <i class="fa fa-shield"></i>
+              <span>Security</span>
+            </div>
+            <div class="main__controls_button">
+              <i class="fa fa-users"></i>
+              <span>Participants</span>
+            </div>
+            <div class="main__controls_button" onclick = "togglechatbox()">
+              <i class="fa fa-comment"></i>
+              <span>Chat</span>
+            </div>
+          </div>
+
+          <div class="main__controls_block">
+            <div class="main__controls_button leaveMeeting" id="leave-meeting" onclick = "leavemeeting()">
+              <i class="fa fa-times"></i>
+              <span class="">Leave Meeting</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="main__right" id = "chatroom">
+        <video
+        id="webcam"
+        playsinline
+      ></video>
+        <p>hahaha</p>
+        <canvas id = "output"></canvas>
+        <img alt="Italian Trulli" id = "tmpimage">
+        <h1 id = "status">Loading...</h1>
+        <button id = "capturebutton" onclick = "capture()">Capture</button>
+        <div class="main__header">
+          <h6>Chat</h6>
+        </div>
+        <div class="main__chat__window" id="main__chat__window">
+          <ul class="messages" id="all_messages"></ul>
+        </div>
+        <div class="main__message_container">
+          <input
+            type="text"
+            id="chat_message"
+            placeholder="Type message here.."
+          />
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+      function setText(text) {
+    document.getElementById("status").innerText = text;
+  }
+
+  function drawLine(ctx, x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  async function setupWebcam() {
+    return new Promise((resolve, reject) => {
+      const webcamElement = document.getElementById("webcam");
+      const navigatorAny = navigator;
+      navigator.getUserMedia =
+        navigator.getUserMedia ||
+        navigatorAny.webkitGetUserMedia ||
+        navigatorAny.mozGetUserMedia ||
+        navigatorAny.msGetUserMedia;
+      if (navigator.getUserMedia) {
+        navigator.getUserMedia(
+          { video: true, audio: true },
+          (stream) => {
+            webcamElement.srcObject = stream;
+            webcamElement.addEventListener("loadeddata", resolve, false);
+          },
+          (error) => reject()
+        );
+      } else {
+        reject();
+      }
+    });
+  }
+
+  const emotions = [
+    "angry",
+    "disgust",
+    "fear",
+    "happy",
+    "neutral",
+    "sad",
+    "surprise",
+  ];
+  let emotionModel = null;
+
+  let output = null;
+  let model = null;
+
+  async function predictEmotion(points) {
+    let result = tf.tidy(() => {
+      const xs = tf.stack([tf.tensor1d(points)]);
+      return emotionModel.predict(xs);
+    });
+    let prediction = await result.data();
+    result.dispose();
+    // Get the index of the maximum value
+    let id = prediction.indexOf(Math.max(...prediction));
+    return emotions[id];
+  }
+
+  async function trackFace() {
+    const video = document.getElementById("webcam");
+    const faces = await model.estimateFaces({
+      input: video,
+      returnTensors: false,
+      flipHorizontal: false,
+    });
+    output.drawImage(
+      video,
+      0,
+      0,
+      video.width,
+      video.height,
+      0,
+      0,
+      video.width,
+      video.height
+    );
+
+    let points = null;
+    faces.forEach((face) => {
+      // Draw the bounding box
+      const x1 = face.boundingBox.topLeft[0];
+      const y1 = face.boundingBox.topLeft[1];
+      const x2 = face.boundingBox.bottomRight[0];
+      const y2 = face.boundingBox.bottomRight[1];
+      const bWidth = x2 - x1;
+      const bHeight = y2 - y1;
+      drawLine(output, x1, y1, x2, y1);
+      drawLine(output, x2, y1, x2, y2);
+      drawLine(output, x1, y2, x2, y2);
+      drawLine(output, x1, y1, x1, y2);
+
+      // Add just the nose, cheeks, eyes, eyebrows & mouth
+      const features = [
+        "noseTip",
+        "leftCheek",
+        "rightCheek",
+        "leftEyeLower1",
+        "leftEyeUpper1",
+        "rightEyeLower1",
+        "rightEyeUpper1",
+        "leftEyebrowLower", //"leftEyebrowUpper",
+        "rightEyebrowLower", //"rightEyebrowUpper",
+        "lipsLowerInner", //"lipsLowerOuter",
+        "lipsUpperInner", //"lipsUpperOuter",
+      ];
+      points = [];
+      features.forEach((feature) => {
+        face.annotations[feature].forEach((x) => {
+          points.push((x[0] - x1) / bWidth);
+          points.push((x[1] - y1) / bHeight);
+        });
+      });
+    });
+
+    if (points) {
+      let emotion = await predictEmotion(points);
+      setText(`Detected: ${emotion}`);
+    } else {
+      setText("No Face");
+    }
+
+    requestAnimationFrame(trackFace);
+  }
+
+  (async () => {
+    await setupWebcam();
+    const video = document.getElementById("webcam");
+    video.play();
+    let videoWidth = video.videoWidth;
+    let videoHeight = video.videoHeight;
+    video.width = videoWidth;
+    video.height = videoHeight;
+
+    let canvas = document.getElementById("output");
+    canvas.width = video.width;
+    canvas.height = video.height;
+
+    output = canvas.getContext("2d");
+    output.translate(canvas.width, 0);
+    output.scale(-1, 1); // Mirror cam
+    output.fillStyle = "#fdffb6";
+    output.strokeStyle = "#fdffb6";
+    output.lineWidth = 2;
+
+    // Load Face Landmarks Detection
+    model = await faceLandmarksDetection.load(
+      faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+    );
+    // Load Emotion Detection
+    emotionModel = await tf.loadLayersModel("../model/facemo.json");
+
+    setText("Loaded!");
+
+    trackFace();
+  })();
+    </script>
+  </body>
+</html>

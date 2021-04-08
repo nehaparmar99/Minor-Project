@@ -1,0 +1,31 @@
+{
+  "name": "zoom-clone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "animated-emojis": "^1.0.1",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "node-emoji": "^1.10.0",
+    "nodemon": "^2.0.7",
+    "peer": "^0.5.3",
+    "peerjs": "^1.3.2",
+    "pug": "^3.0.2",
+    "socket.io": "^2.4.1",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "^4.1.0",
+    "rollup-plugin-multi-input": "^1.2.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  }
+}
