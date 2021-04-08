@@ -131,7 +131,7 @@
         return emotions[id];
       }
 
-      async function trackFace() {
+      const trackface = async () => {
         const video = document.getElementById("myvid");
         const faces = await model.estimateFaces({
           input: video,
@@ -179,11 +179,12 @@
           predictedemo.push(emotion);
           //console.log(predictedemo);
         } else {
+          predictedemo.push("-1");
           console.log("No points");
           //setText("No Face");
         }
-        requestAnimationFrame(trackFace);
-      }
+        // requestAnimationFrame(trackFace);
+      };
 
       function leavemeet() {
         console.log("LEAVE");
@@ -216,8 +217,8 @@
         if (!emomodel) emomodel = await tf.loadLayersModel(modelURL);
         //webcam = await tf.data.webcam(document.getElementById("myvid"));
 
-        trackFace();
-        // setInterval(renderprediction, 3000);
+        //trackFace();
+        setInterval(trackface, 2000);
       })();
     </script>
     <script src="script.js"></script>

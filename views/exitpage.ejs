@@ -37,6 +37,7 @@
       <p id="5">🙄</p>
       <p id="6">🤔</p>
       <p id="7">😟</p>
+      <p id="8">Absent for 👻: <span id="absent"></span></p>
       <p>Overall understanding of the lesson: <span id="overall"></span></p>
     </div>
     <script>
@@ -54,6 +55,7 @@
         //   "surprise",
         // ];
         var arrayLength = emotions.length;
+        var abs = 0;
         for (var i = 0; i < arrayLength; i++) {
           if (emotions[i] == "angry") count[0]++;
           if (emotions[i] == "disgust") count[1]++;
@@ -62,6 +64,7 @@
           if (emotions[i] == "neutral") count[4]++;
           if (emotions[i] == "sad") count[5]++;
           if (emotions[i] == "surprise") count[6]++;
+          if (emotions[i] == -1) abs++;
           //Do something
         }
         var maxx = 0;
@@ -75,6 +78,7 @@
           if (i == 0 || i == 1 || i == 2 || i == 5) maxx -= num;
           else maxx += num;
         }
+        document.getElementById("absent").innerHTML = abs + " seconds";
         document.getElementById("overall").innerHTML =
           Math.round((maxx + Number.EPSILON) * 100) / 100 + "%";
         // emotions.forEach((emotion) => {

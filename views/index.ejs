@@ -4,18 +4,9 @@
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-	  <!-- <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> -->
-     <!-- <script src="static/jquery.slim.min.js"></script>
-    <script src="static/bootstrap.min.js"></script>
-    <script src="static/popper.min.js"></script> -->
 
 	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- <script>
-        if (!location.hash.replace('#', '').length) {
-            location.href = location.href.split('#')[0] + '#' + (18 * 100).toString().replace('.', '');
-            location.reload();
-        }
-    </script> -->
+
 <link rel="stylesheet" type="text/css" href="../public/index.css"></link>
     <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -25,9 +16,73 @@
 <style>
      body {
             background-color: skyblue;
-            text-decoration-color: white;
-            font-size:7em; 
+            
         }
+        .card-body{
+            margin-top: 50px;
+            padding: 30px;
+            width: 100%;
+        }
+        .card{
+            width: 100%;
+        }
+       #copyy{
+           margin-top: 15px;
+           margin-bottom: 5px;
+           display: none;
+       }
+        #linkk{
+            /* display: none; */
+         font-size: 0.5em;
+            height: 20%;
+            color: tomato;
+            background-color: transparent;
+            border-radius: 5px transparent;
+        }
+        input{
+            /* display: none; */
+         font-size: 0.5em;
+            height: 20%;
+            color: tomato;
+            background-color: transparent;
+            border-radius: 5px transparent;
+    
+        }
+        #copy{
+width: 20%;
+        }
+        .column_home {
+  align-content:center;
+  height: 100%;
+  width: 80%;
+  margin-left:150px;
+  font-size: 1.5em;
+}
+ul {
+  padding: 20px; 
+  /*list-style-position: inside;*/
+  /*list-style-type: none;*/
+}
+input[type="submit"] {
+    border-radius: 10px;
+    background: #45AF7F;
+    border: 1px solid #f2f2f2;
+    color: #ffffff;
+    cursor: default;
+    font-size: 14px;
+    font-weight: bold;
+    width: 200px;
+    padding: 0 16px;
+    height:50px;
+}
+
+input[type="submit"]:hover {
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    background: #f8f8f8;
+    border: 1px solid #c6c6c6;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    color: #222;
+}
 </style>
 
 </head>
@@ -36,58 +91,77 @@
     <!-- <article> -->
         <div class="visible">
         <div class="container visible">
-            <div class="row">
-              <div class="col-lg-6 col-sm-4">
+            <div class="roww">
+              <div >
                 <div class="card" style="border-color:green; background-color: lavender;">
                   <div class="card-body text-center">
-                      <h1  style="text-align:center; color: green;"><b>Broadcast Name</b><h1>  <br>
+                      <h1  style="text-align:center; color: green;"><b>Create a meet</b><h1>  <br>
                     <input type="text" class="form-control" id="conference-name" placeholder="Enter Your Broadcast Name"><br>
-                    <button id="start-conferencing" class="btn btn-success">New Broadcast</button>
+                    
+                    <button id="start-conferencing" class="btn btn-success">Create New Meeting</button>
+                   
+                      <div id="copyy">
+                    <textarea id="linkk" name="linkk" class="js-textareacopybtn"></textarea>
+                    <button id="copy" class="btn btn-success">Copy link</button>
+                    </div>
+                  
+                    <button id="start" class="btn btn-success">Start Meeting</button>
+                     <!-- <button id="share-code" class="btn btn-success">Share meeting code</button> -->
                 </div>
               </div>
             </div>
-            <div class="col-lg-6 col-sm-4">
+            <div>
                 <div class="card" style="border-color:green; background-color: lavender;">
                     <div class="card-body text-center">
-                        <h1  style="text-align:center; color: green;"><b>Join Room</b><h1>  <br>
+                        <h1  style="text-align:center; color: green;"><b>Join Room</b><h1>
+                            <input type="text" class="form-control" id="conference-name" placeholder="Enter Your Broadcast Name">
+                            <input id="code" placeholder="Enter meeting link..." /> 
+                            <button id="join" class="btn btn-success">Join</button>
                <br>
                 <table id="rooms-list" class="visible"  style="text-align:center; color: green;"></table>
                 </div></div>
 
               </div>
             </div>
-
+<div class="column_home" id="left-col" align="center">
+       <!-- <img src = "/static/CSS/images/text.png" width="100%"> -->
+       <h1 style="margin-top: 35px;"> Test Simulator</h1>
+         <div style="width:70%; text-align:justify; align-content:center; display:inline-block;">
+           <p> Use the text interview simulator and get a feedback on how our algorithm interprets your psychological traits through compared to other candidates.</p>
+           <br>
+           <p> You will be provided a feedback on your Big Five Psychological traits, which include :
+           <ul>
+             <li>Openness</li>
+             <li>Conscientiousness</li>
+             <li>Extraversion</li>
+             <li>Agreeableness</li>
+             <li>Neuroticism</li>
+         </ul>
+         <br>
+         </div>
+     </div>
+         <div class="column_home" id="left-col" align="center" style="margin-bottom:45px">
+        <form action="http://127.0.0.1:5000/text" method="post" align="center">
+          <input type="submit" name="text" value="Text Interview" align="center">
+        </form>
+    </div>
             </div>
             </div>
             </div>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
-        
-        <div style="background-color: honeydew;">
-
-        <div id="participants"></div>
-        
-        <div id="students" style="color: black;">
-            <div></div>
-        </div>
-        <canvas id="myChart" style="margin-left: 12px;"></canvas>
-        <div id="livestatus" style="background-color: honeydew;">
-        </div>
-        <button id="close">Close</button>
-        </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
-        <script src="https://cdn.jsdelivr.net/npm/promise-polyfill"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.all.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.min.js"></script>
+      
         <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.min.css">
-
 <script>
-  let newb=document.getElementById("start-conferencing")  
+  let newb=document.getElementById("start-conferencing");
+  let startmeet=document.getElementById("start") 
+  let copylink=document.getElementById("copy") ;
+  let join=document.getElementById("join")
   newb.addEventListener("click",createb);
+    join.addEventListener("click",joinm);
   let username=document.getElementById("conference-name");
+  startmeet.addEventListener("click",startm)
+    copylink.addEventListener("click",copy)
+  let code,url;
   function createb(){
       console.log("clicked")
       let name=username.value;
@@ -105,10 +179,33 @@
   }),
       })  .then((res) => res.json())
       .then(res=>{
-         const url="http://localhost:3030/"+`${res.code}`
-         console.log(url)
-       window.location.href = url;
+          code=res.code;
+         url="http://localhost:3030/"+`${res.code}`
+       console.log(url)
+       document.getElementById("copyy").style.display="block";
+document.getElementById("linkk").value=url;
     });
+  }
+  function copy(){
+var copyTextarea = document.querySelector('.js-textareacopybtn');
+  copyTextarea.focus();
+  copyTextarea.select();
+  try {
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('Copying text command was ' + msg);
+  } catch (err) {
+    console.log('Oops, unable to copy');
+  }
+  alert("Link Copied!")
+  }
+  function startm(){
+       window.location.href = url;
+  }
+  function joinm(){
+      url=document.getElementById("code").value;
+      console.log(url)
+        window.location.href = url;
   }
 </script>
     <!-- </article> -->

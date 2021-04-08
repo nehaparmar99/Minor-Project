@@ -19,6 +19,9 @@ def model():
 def load_shards(path):
     return send_from_directory('model', path)
 
+# @app.route('/text', methods=['POST'])
+# def text() :
+#     return render_template('text.html')
 
 if __name__ == "__main__":
     app.run()
